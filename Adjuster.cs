@@ -161,6 +161,7 @@ namespace MonitorAdjuster
                 tempMonitorConfig.Clear();
                 tempMonitorConfig["hue"] = monitor.HUEControl.CurrentAngle;
                 //MessageBox.Show($"Cached hue {tempMonitorConfig["hue"]} for {i + 1} monitor");
+
                 tempMonitorConfig["vibrance"] = monitor.DigitalVibranceControl.CurrentLevel;
                 monitorsDefault[monitor] = tempMonitorConfig;
                 var display = displays[i];
