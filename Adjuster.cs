@@ -17,11 +17,11 @@ namespace MonitorAdjuster
 {
     public partial class Adjuster : Form
     {
-        private static Monitor[] GetAllNvidiaMonitors()
+        internal static Monitor[] GetAllNvidiaMonitors()
         {
             return Monitor.GetDisplays();
         }
-        private static Display[] GetAllWindowsDisplays()
+        internal static Display[] GetAllWindowsDisplays()
         {
             return Display.GetDisplays().ToArray();
         }
@@ -122,6 +122,11 @@ namespace MonitorAdjuster
         internal static Dictionary<int, TrackBar> brightnessSliders = new Dictionary<int, TrackBar>();
         internal static Dictionary<int, TrackBar> contrastSliders = new Dictionary<int, TrackBar>();
         internal static Dictionary<int, TrackBar> gammaSliders = new Dictionary<int, TrackBar>();
+
+        internal static int displaysCount = 0;
+
+        internal static Monitor[] monitors;
+        internal static Display[] displays;
         internal static void InitNvidia()
         {
             try
@@ -133,17 +138,18 @@ namespace MonitorAdjuster
                 MessageBox.Show($"Nvidia API Initialization Failed... \n{exc.StackTrace}");
                 return;
             }
-
             //int nvidiaMainMonitorIndex = GetMainMonitorIndex();
             //Monitor monitor = GetNvidiaMainMonitor(nvidiaMainMonitorIndex);
             //Display display = GetWindowsMainDisplay();
             //MessageBox.Show($"Main nvidia monitor: {PathInfo.GetDisplaysConfig()[nvidiaMainMonitorIndex].ToString()}, main windows display: {display.ToPathDisplayTarget().FriendlyName}");
 
-            var monitors = GetAllNvidiaMonitors();
-            var displays = GetAllWindowsDisplays();
+            monitors = GetAllNvidiaMonitors();
+            displays = GetAllWindowsDisplays();
+            displaysCount = displays.Count();
+            ConfigManager.LoadConfig();
             var tempMonitorConfig = new Dictionary<string, int>();
             var tempDisplayConfig = new Dictionary<string, double>();
-            for (int i = 0; i < displays.Count(); i++)
+            for (int i = 0; i < displaysCount; i++)
             {
                 var monitor = monitors[i];
                 tempMonitorConfig.Clear();
@@ -156,64 +162,66 @@ namespace MonitorAdjuster
                 displaysDefault[display] = display.GammaRamp;
             }
 
-            var font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            var font = new Font("Segoe UI", 15F, FontStyle.Regular, GraphicsUnit.Point);
             for (int i = 0; i < displays.Count(); i++)
             {
                 var monitor = monitors[i];
                 var display = displays[i];
 
                 //Nvidia API monitor section
-                var monitorLabel = new System.Windows.Forms.Label();
-                var hueLabel = new System.Windows.Forms.Label();
-                var vibranceLabel = new System.Windows.Forms.Label();
+                var monitorLabel = new Label();
+                var hueLabel = new Label();
+                var vibranceLabel = new Label();
                 monitorLabel.AutoSize = vibranceLabel.AutoSize = hueLabel.AutoSize = true;
-                monitorLabel.Size = vibranceLabel.Size = hueLabel.Size = new System.Drawing.Size(60, 25);
+                monitorLabel.Size = vibranceLabel.Size = hueLabel.Size = new Size(60, 25);
                 monitorLabel.TabIndex = vibranceLabel.TabIndex = hueLabel.TabIndex = 0;
                 monitorLabel.Font = vibranceLabel.Font = hueLabel.Font = font;
 
-                monitorLabel.Location = new System.Drawing.Point(25 + (i * 175), 75);
-                hueLabel.Location = new System.Drawing.Point(25 + (i * 175), 125);
-                vibranceLabel.Location = new System.Drawing.Point(25 + (i * 175), 250);
+                monitorLabel.Location = new Point(25 + (i * 175), 125);
+                hueLabel.Location = new Point(25 + (i * 175), 175);
+                vibranceLabel.Location = new Point(25 + (i * 175), 300);
                 monitorLabel.Name = $"monitorLabel{i + 1}";
-                hueLabel.Name = $"hueLabel{i}";
-                vibranceLabel.Name = $"vibranceLabel{i}";
+                hueLabel.Name = $"hueLabel{i + 1}";
+                vibranceLabel.Name = $"vibranceLabel{i + 1}";
                 monitorLabel.Text = $"Monitor {i + 1}";
                 hueLabel.Text = $"HUE {i + 1}";
                 vibranceLabel.Text = $"Vibrance {i + 1}";
 
                 var hueSlider = new TrackBar();
                 var vibranceSlider = new TrackBar();
-                vibranceSlider.Size = hueSlider.Size = new System.Drawing.Size(150, 70);
+                vibranceSlider.Size = hueSlider.Size = new Size(150, 70);
                 vibranceSlider.TabIndex = hueSlider.TabIndex = 1;
-                hueSlider.Location = new System.Drawing.Point(25 + (i * 175), 175);
-                vibranceSlider.Location = new System.Drawing.Point(25 + (i * 175), 300);
-                hueSlider.Name = $"vibranceTrackBar{i}";
-                vibranceSlider.Name = $"hueTrackBar{i}";
+                hueSlider.Location = new Point(25 + (i * 175), 225);
+                vibranceSlider.Location = new Point(25 + (i * 175), 350);
+                hueSlider.Name = $"hueTrackBar{i}";
+                vibranceSlider.Name = $"vibranceTrackBar{i}";
+
                 hueSlider.Minimum = 0;
                 hueSlider.Maximum = 359;
                 hueSlider.Value = monitor.HUEControl.CurrentAngle;
+
                 vibranceSlider.Minimum = monitor.DigitalVibranceControl.MinimumLevel;
                 vibranceSlider.Maximum = monitor.DigitalVibranceControl.MaximumLevel;
                 vibranceSlider.Value = monitor.DigitalVibranceControl.CurrentLevel;
-                hueSlider.Scroll += new System.EventHandler((object sender, EventArgs e) => { monitor.HUEControl.CurrentAngle = ((TrackBar)sender).Value; });
-                vibranceSlider.Scroll += new System.EventHandler((object sender, EventArgs e) => { monitor.DigitalVibranceControl.CurrentLevel = ((TrackBar)sender).Value; });
+
+                hueSlider.Scroll += new EventHandler((object sender, EventArgs e) => { monitor.HUEControl.CurrentAngle = ((TrackBar)sender).Value; });
+                vibranceSlider.Scroll += new EventHandler((object sender, EventArgs e) => { monitor.DigitalVibranceControl.CurrentLevel = ((TrackBar)sender).Value; });
 
                 //Windows display section
-
-                var brightnessLabel = new System.Windows.Forms.Label();
-                var contrastLabel = new System.Windows.Forms.Label();
-                var gammaLabel = new System.Windows.Forms.Label();
+                var brightnessLabel = new Label();
+                var contrastLabel = new Label();
+                var gammaLabel = new Label();
                 brightnessLabel.AutoSize = contrastLabel.AutoSize = gammaLabel.AutoSize = true;
                 brightnessLabel.Size = contrastLabel.Size = gammaLabel.Size = new System.Drawing.Size(60, 25);
                 brightnessLabel.TabIndex = contrastLabel.TabIndex = gammaLabel.TabIndex = 0;
                 brightnessLabel.Font = contrastLabel.Font = gammaLabel.Font = font;
 
-                brightnessLabel.Location = new System.Drawing.Point(25 + (i * 175), 375);
-                contrastLabel.Location = new System.Drawing.Point(25 + (i * 175), 500);
-                gammaLabel.Location = new System.Drawing.Point(25 + (i * 175), 625);
+                brightnessLabel.Location = new Point(25 + (i * 175), 425);
+                contrastLabel.Location = new Point(25 + (i * 175), 550);
+                gammaLabel.Location = new Point(25 + (i * 175), 675);
                 brightnessLabel.Name = $"brightnessLabel{i + 1}";
-                contrastLabel.Name = $"contrastLabel{i}";
-                gammaLabel.Name = $"gammaLabel{i}";
+                contrastLabel.Name = $"contrastLabel{i + 1}";
+                gammaLabel.Name = $"gammaLabel{i + 1}";
                 brightnessLabel.Text = $"Brightness {i + 1}";
                 contrastLabel.Text = $"Contrast {i + 1}";
                 gammaLabel.Text = $"Gamma {i + 1}";
@@ -223,9 +231,9 @@ namespace MonitorAdjuster
                 var gammaSlider = new TrackBar();
                 brightnessSlider.Size = contrastSlider.Size = gammaSlider.Size = new System.Drawing.Size(150, 70);
                 brightnessSlider.TabIndex = contrastSlider.TabIndex = gammaSlider.TabIndex = 1;
-                brightnessSlider.Location = new System.Drawing.Point(25 + (i * 175), 425);
-                contrastSlider.Location = new System.Drawing.Point(25 + (i * 175), 550);
-                gammaSlider.Location = new System.Drawing.Point(25 + (i * 175), 675);
+                brightnessSlider.Location = new Point(25 + (i * 175), 475);
+                contrastSlider.Location = new Point(25 + (i * 175), 600);
+                gammaSlider.Location = new Point(25 + (i * 175), 725);
                 brightnessSlider.Name = $"brightnessTrackBar{i}";
                 contrastSlider.Name = $"contrastTrackBar{i}";
                 gammaSlider.Name = $"gammaTrackBar{i}";
@@ -242,9 +250,9 @@ namespace MonitorAdjuster
                 gammaSlider.Maximum = 280;
                 gammaSlider.Value = 100;
 
-                brightnessSlider.Scroll += new System.EventHandler((object sender, EventArgs e) =>  { display.GammaRamp = new DisplayGammaRamp((double)(((TrackBar)sender).Value) / 100,    (double)contrastSlider.Value / 100, (double)gammaSlider.Value / 100); });
-                contrastSlider.Scroll += new System.EventHandler((object sender, EventArgs e) =>    { display.GammaRamp = new DisplayGammaRamp((double)brightnessSlider.Value / 100, (double)(((TrackBar)sender).Value) / 100, (double)gammaSlider.Value / 100); });
-                gammaSlider.Scroll += new System.EventHandler((object sender, EventArgs e) =>       { display.GammaRamp = new DisplayGammaRamp((double)brightnessSlider.Value / 100, (double)contrastSlider.Value / 100, (double)(((TrackBar)sender).Value) / 100); });
+                brightnessSlider.Scroll += new EventHandler((object sender, EventArgs e) =>  { display.GammaRamp = new DisplayGammaRamp((double)(((TrackBar)sender).Value) / 100,    (double)contrastSlider.Value / 100, (double)gammaSlider.Value / 100); });
+                contrastSlider.Scroll += new EventHandler((object sender, EventArgs e) =>    { display.GammaRamp = new DisplayGammaRamp((double)brightnessSlider.Value / 100, (double)(((TrackBar)sender).Value) / 100, (double)gammaSlider.Value / 100); });
+                gammaSlider.Scroll += new EventHandler((object sender, EventArgs e) =>       { display.GammaRamp = new DisplayGammaRamp((double)brightnessSlider.Value / 100, (double)contrastSlider.Value / 100, (double)(((TrackBar)sender).Value) / 100); });
 
 
                 instance.Controls.Add(monitorLabel);
@@ -252,6 +260,7 @@ namespace MonitorAdjuster
                 instance.Controls.Add(vibranceLabel);
                 instance.Controls.Add(hueSlider);
                 instance.Controls.Add(vibranceSlider);
+
                 hueSliders[i] = hueSlider;
                 vibranceSliders[i] = vibranceSlider;
 
@@ -261,27 +270,33 @@ namespace MonitorAdjuster
                 instance.Controls.Add(brightnessSlider);
                 instance.Controls.Add(contrastSlider);
                 instance.Controls.Add(gammaSlider);
+
                 brightnessSliders[i] = brightnessSlider;
                 contrastSliders[i] = contrastSlider;
                 gammaSliders[i] = gammaSlider;
+
                 foreach (var item in instance.Controls)
                 {
                     if (item.GetType() == typeof(TrackBar))
                     {
-                        ((System.ComponentModel.ISupportInitialize)(item)).BeginInit();
+                        ((ISupportInitialize)(item)).BeginInit();
                     }
                 }
             }
         }
 
-        private void resetButton_Click(object sender, EventArgs e)
+        private void resetButton_Click(object sender, EventArgs e) => Reset();
+
+        private void forceReset_Click(object sender, EventArgs e) => Reset(true);
+
+        private void loadButton_Click(object sender, EventArgs e, int num)
         {
-            Reset();
+            ConfigManager.LoadConfig(num);
         }
 
-        private void forceReset_Click(object sender, EventArgs e)
+        private void saveButton_Click(object sender, EventArgs e, int num)
         {
-            Reset(true);
+            ConfigManager.SaveConfig(num);
         }
     }
 }
