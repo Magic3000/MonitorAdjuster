@@ -17,7 +17,7 @@
             {
                 components.Dispose();
             }
-            Adjuster.Reset();
+            Adjuster.Reset(forceResetUsed);
             base.Dispose(disposing);
         }
 
@@ -29,7 +29,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Adjuster));
             this.resetButton = new System.Windows.Forms.Button();
+            this.forceReset = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // resetButton
@@ -43,14 +45,27 @@
             this.resetButton.UseVisualStyleBackColor = true;
             this.resetButton.Click += new System.EventHandler(this.resetButton_Click);
             // 
+            // forceReset
+            // 
+            this.forceReset.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.forceReset.Location = new System.Drawing.Point(146, 10);
+            this.forceReset.Name = "forceReset";
+            this.forceReset.Size = new System.Drawing.Size(203, 50);
+            this.forceReset.TabIndex = 1;
+            this.forceReset.Text = "Force Reset";
+            this.forceReset.UseVisualStyleBackColor = true;
+            this.forceReset.Click += new System.EventHandler(this.forceReset_Click);
+            // 
             // Adjuster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(828, 744);
+            this.Controls.Add(this.forceReset);
             this.Controls.Add(this.resetButton);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Adjuster";
-            this.Text = "Form1";
+            this.Text = "Monitor Adjuster";
             this.ResumeLayout(false);
 
         }
@@ -58,6 +73,7 @@
         #endregion
 
         private System.Windows.Forms.Button resetButton;
+        private System.Windows.Forms.Button forceReset;
     }
 }
 

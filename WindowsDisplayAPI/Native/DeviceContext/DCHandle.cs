@@ -58,8 +58,7 @@ namespace WindowsDisplayAPI.Native.DeviceContext
             }
             catch (Exception exc)
             {
-                handleExceptions++;
-                Console.Title = $"ReleaseHandle exceptions: {handleExceptions}";
+                //handleExceptions++;
                 //Console.WriteLine($"Exception in ReleaseHandle: {exc.Message}");
             }
             //Console.WriteLine("ReleaseHandle returning: " + toRet);

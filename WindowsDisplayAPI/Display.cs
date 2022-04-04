@@ -98,7 +98,14 @@ namespace WindowsDisplayAPI
 
                 if (!DeviceContextApi.SetDeviceGammaRamp(handle, ref gammaRamp))
                 {
-                    throw new ArgumentException("Invalid argument or value passed.", nameof(value));
+                    try
+                    {
+                        throw new ArgumentException("Invalid argument or value passed.", nameof(value));
+                    }
+                    catch
+                    {
+
+                    }
                 }
             }
         }
